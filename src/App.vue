@@ -1,5 +1,6 @@
 <template>
-  <div id="app">
+  <div id="app" @click="onClick">
+
     <svg xmlns="http://www.w3.org/2000/svg"
          :width="width+'px'"
          :height="height+'px'"
@@ -29,16 +30,29 @@
 <script>
 
 import * as d3 from 'd3'
+import Graph from 'graph-utils'
 
+const testAdjacencyList = {
+  A: {id: 'A', edges: ["B"]},
+  B: {id: 'B', edges: ["C"]},
+  C: {id: 'C', edges: ["D"]},
+  D: {id: 'D', edges: ["A"]}
+}
 
 
 export default {
   el: '#app',
   data: () => ({
-    graph: {
-      nodes: d3.range(100).map(i => ({ index: i, x: null, y: null })),
-      links: d3.range(99).map(i => ({ source: Math.floor(Math.sqrt(i)), target: i + 1 }))
-    },
+    graph: new Graph({
+      A: {x: null, y: null, id: 'A', index: 'A', edges: ["B"]},
+      B: {x: null, y: null, id: 'B', index: 'B', edges: ["C"]},
+      F: {x: null, y: null, id: 'F', index: 'B', edges: ["C"]},
+      H: {x: null, y: null, id: 'H', index: 'B', edges: ["C"]},
+      R: {x: null, y: null, id: 'R', index: 'B', edges: ["C"]},
+      N: {x: null, y: null, id: 'N', index: 'B', edges: ["C"]},
+      M: {x: null, y: null, id: 'M', index: 'B', edges: ["C"]},
+      C: {x: null, y: null, id: 'C', index: 'C', edges: ["D"]},
+      D: {x: null, y: null, id: 'D', index: 'D', edges: ["A"]}}).convertToArrays(),
     width: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
     height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 40,
     padding: 20,
@@ -67,10 +81,11 @@ export default {
   created(){
      this.simulation = d3.forceSimulation(this.graph.nodes)
       //eslint:disable-next-line
-        .force('charge', d3.forceManyBody().strength(d => -100))
-        .force('link', d3.forceLink(this.graph.links))
-        .force('x', d3.forceX())
-        .force('y', d3.forceY())
+        .force('charge', d3.forceManyBody())
+        .force('link', d3.forceLink(this.graph.links).id(d => d.id))
+        .force("center", d3.forceCenter(this.width / 2, this.height / 2));
+        // .force('x', d3.forceX())
+        // .force('y', d3.forceY())
   },
   methods: {
     drag(e) {
@@ -80,6 +95,26 @@ export default {
         this.currentMove.x = e.screenX
         this.currentMove.y = e.screenY
       }
+    },
+    onClick() {
+      this.graph = new Graph({
+        A: {x: null, y: null, id: 'A', edges: ["B"]},
+        B: {x: null, y: null, id: 'B', edges: ["C"]},
+        F: {x: null, y: null, id: 'F', edges: ["C"]},
+        H: {x: null, y: null, id: 'H', edges: ["C"]},
+        Z: {x: null, y: null, id: 'Z', edges: ["B"]},
+        R: {x: null, y: null, id: 'R', edges: ["C"]},
+        N: {x: null, y: null, id: 'N', edges: ["C"]},
+        M: {x: null, y: null, id: 'M', edges: ["C"]},
+        C: {x: null, y: null, id: 'C', edges: ["D"]},
+        D: {x: null, y: null, id: 'D', edges: ["A"]}}).convertToArrays(),
+      this.simulation = d3.forceSimulation(this.graph.nodes)
+         //eslint:disable-next-line
+           .force('charge', d3.forceManyBody())
+           .force('link', d3.forceLink(this.graph.links).id(d => d.id))
+           .force("center", d3.forceCenter(this.width / 2, this.height / 2));
+      this.simulation.alpha(1)
+      this.simulation.restart()
     },
     drop(){
       delete this.currentMove.node.fx
